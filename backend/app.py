@@ -21,10 +21,10 @@ def when_to_plus():
     begin = request.args.get('begin',None, type=str)
     begin = datetime.strptime(begin,"%d.%m.%Y")
     total_investments = request.args.get('total_investments',None,type=float)
-    our_investments_percent = request.args.get('our_investments_percent',type=int)
+    our_investments_percent = request.args.get('our_investments_percent',type=float)
     object_profit = request.args.get('object_profit',None, type=float)
-    profit_return_percent_while_not_inv_returned = request.args.get('profit_return_percent_while_not_inv_returned',None, type=int)
-    profit_return_percent_after_inv_returned = request.args.get('profit_return_percent_after_inv_returned',None, type=int)
+    profit_return_percent_while_not_inv_returned = request.args.get('profit_return_percent_while_not_inv_returned',None, type=float)
+    profit_return_percent_after_inv_returned = request.args.get('profit_return_percent_after_inv_returned',None, type=float)
     lst = when_come_to_plus(date_begin=begin,
                   total_investments=total_investments,
                   our_investments_percent=our_investments_percent,

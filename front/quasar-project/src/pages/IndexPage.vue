@@ -55,13 +55,21 @@
           dense
           readonly />
         </div>
+        <div class="col-2 q-pa-md">
+          <q-btn class=" btn btn-info" color="deep-orange"
+          @click="creditToInvest"> Кредит В инвестиции</q-btn>
+        </div>
       </div>
+
       <div class="row shadow-2">
         <div class="col-auto q-pa-md">
           <q-input
+          ref = "dateeRef"
           filled
           v-model="date"
           hint="Дата начала"
+          lazy-rules
+          :rules="daterules"
           dense>
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer">
@@ -89,6 +97,7 @@
           type="number"
           filled
           hint="Процент наших инвестиций"
+          :max-decimals="2"
           dense
           @update:model-value="newvalue => sumFromPercents(newvalue)"/>
 
@@ -124,38 +133,42 @@
           hint="Процент с выручки после возврата" dense />
         </div>
         <div class="col-2 q-pa-md">
-          <q-btn class=" btn btn-info" color="green" @click="runWhenToPlus">Рассчитать</q-btn>
+          <q-btn class="btn btn-info"  @click="runWhenToPlus" color="green" >Рассчитать</q-btn>
         </div>
+
       </div>
+
     </div>
     </div>
     <div class="row">
       <div class="col">
         <div>
-        <apexchart width="500" type="bar" :options="options" :series="series"></apexchart>
+        <apexchart height="500" type="area" :options="options" :series="series"></apexchart>
         </div>
       </div>
     </div>
 
     <div class="row">
       <div class="col">
-      <q-markup-table>
-      <thead>
-        <tr>
-          <th class="text-left">Дата</th>
-          <th class="text-right">Выручка</th>
-          <th class="text-right">К возврату</th>
-          <th class="text-right">Всего вернули</th>
-          <th class="text-right">Наш баланс</th>
+      <q-markup-table dense>
+      <thead class="bg-light-blue-3">
+        <tr >
+          <th class="text-center">Дата</th>
+          <th class="text-center">Выручка</th>
+          <th class="text-center">К возврату</th>
+          <th class="text-center">Всего вернули</th>
+          <th class="text-center">Наш баланс</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row in payment_list" :key="row.number">
-          <td class="text-left">{{ row.date }}</td>
-          <td class="text-right">{{ row.profit }}</td>
-          <td class="text-right">{{ row.sum_return_this_month }}</td>
-          <td class="text-right">{{ row.returned_sum }}</td>
-          <td class="text-right">{{ row.our_balance }}</td>
+        <tr v-for="row in payment_list" :key="row.number"
+        :class="(row.our_balance>0)?'bg-green-1':'bg-red-1'">
+
+          <td class="text-center">{{ row.date }}</td>
+          <td class="text-center">{{ row.profit }}</td>
+          <td class="text-center">{{ row.sum_return_this_month }}</td>
+          <td class="text-center">{{ row.returned_sum }}</td>
+          <td class="text-center">{{ row.our_balance }}</td>
         </tr>
       </tbody>
       </q-markup-table>
@@ -179,6 +192,7 @@ export default defineComponent({
     const overpay = ref(0);
     const to_return = ref(0);
     const date = ref('')
+    const dateRef = ref('')
     const total_investments=ref(0);
     const our_investments_percent=ref(0);
     const our_investments_sum=ref(0);
@@ -191,12 +205,12 @@ export default defineComponent({
           id: 'payments-graph'
         },
         xaxis: {
-          categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998]
+          categories: []
         }
       });
       const series = ref([{
         name: 'Наш баланс',
-        data: [30, 40, 45, 50, 49, 60, 70, 91]
+        data: []
       }]);
 
     return {
@@ -216,6 +230,8 @@ export default defineComponent({
       payment_list,
       options,
       series,
+      dateRef,
+      daterules:[ val => val.length>= 8 || 'Введите данные'],
       runCount: function () {
         axios.post('http://127.0.0.1:5000/count_credit?summa=' + summ.value +
           '&percent=' + percent.value +
@@ -225,11 +241,14 @@ export default defineComponent({
             monthPay.value = resp.data.month_sum
             overpay.value = resp.data.overpay
             to_return.value = overpay.value + summ.value
+
           }
 
           )
       },
       runWhenToPlus: function () {
+
+
         axios.post('http://127.0.0.1:5000/when_to_plus?begin=' + date.value +
         '&total_investments=' + total_investments.value +
         '&our_investments_percent=' + our_investments_percent.value+
@@ -240,17 +259,55 @@ export default defineComponent({
           .then(function (resp) {
             console.log(resp)
             payment_list.value=resp.data
+            let balance = payment_list.value.map(v => v.our_balance)
+            let dates = payment_list.value.map(v => v.date)
+            series.value = [{
+              name: 'Наш баланс',
+              data: balance
+            }]
+            options.value = {
+            chart: {
+              id: 'payments-graph'
+            },
+            xaxis: {
+              categories: dates
+            }
+          }
 
           }
 
           )
       },
       sumFromPercents: function (perc) {
-        our_investments_sum.value = total_investments.value*perc/100
+        if (perc){
+          our_investments_sum.value = total_investments.value*perc/100
+        }
       },
       percentsFromSum: function (summ) {
-        our_investments_percent.value = summ*100/total_investments.value
-      }
+        if (summ)
+        {
+          our_investments_percent.value =(summ*100/total_investments.value).toFixed(2)
+        }
+      },
+      creditToInvest: function(){
+        our_investments_sum.value=to_return.value
+        if (total_investments.value){
+          our_investments_percent.value = (to_return.value*100/total_investments.value).toFixed(2)
+        }
+        else {
+          total_investments.value = to_return.value
+          our_investments_percent.value = (to_return.value*100/total_investments.value).toFixed(2)
+        }
+      },
+      // updateTotalInvestSum: function(){
+      //   if (our_investments_sum.value && total_investments.value){
+      //     our_investments_percent.value = our_investments_sum.value*100/total_investments.value
+      //   }
+      //   else if (our_investments_percent.value){
+      //     our_investments_sum.value = total_investments.value*our_investments_percent.value/100
+      //   }
+
+      // }
     };
   },
 });

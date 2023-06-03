@@ -44,11 +44,15 @@ def when_come_to_plus(date_begin:datetime,
     profit_return_sum_while_not_inv_returned = object_profit*profit_return_percent_while_not_inv_returned/100
     profit_return_sum_after_inv_returned = object_profit*profit_return_percent_after_inv_returned/100
     full_months_to_return_inv = int(our_investments//profit_return_sum_while_not_inv_returned)
-    # remainder__inv_for_last_month = our_investments%(profit_return_sum_while_not_inv_returned)
+    remainder__inv_for_last_month = our_investments%(profit_return_sum_while_not_inv_returned)
+    if remainder__inv_for_last_month:
+        full_months_to_return_inv+=1
     returned_sum = 0
     our_balance = -our_investments
     details_list=[]
-    for m in range(full_months_to_return_inv+1):
+    m=0
+    # for m in range(full_months_to_return_inv+1):
+    while our_balance<0:
         if m:
             returned_sum+=profit_return_sum_while_not_inv_returned
             our_balance+=profit_return_sum_while_not_inv_returned
@@ -59,16 +63,18 @@ def when_come_to_plus(date_begin:datetime,
                                            returned_sum=returned_sum,
                                            our_balance=our_balance,
                                            full_investments_returned=False))
+        m+=1
+    
     for i in range(months_show_after_our_inv_returned):
         m+=1
-        if not i:
-            sum_return_this_month = profit_return_sum_while_not_inv_returned
-            returned_sum+=profit_return_sum_while_not_inv_returned
-            our_balance+=profit_return_sum_while_not_inv_returned
-        else:
-            sum_return_this_month = profit_return_sum_after_inv_returned
-            returned_sum+=profit_return_sum_after_inv_returned 
-            our_balance+=profit_return_sum_after_inv_returned 
+        # if not i:
+        #     sum_return_this_month = profit_return_sum_while_not_inv_returned
+        #     returned_sum+=profit_return_sum_while_not_inv_returned
+        #     our_balance+=profit_return_sum_while_not_inv_returned
+        # else:
+        sum_return_this_month = profit_return_sum_after_inv_returned
+        returned_sum+=profit_return_sum_after_inv_returned 
+        our_balance+=profit_return_sum_after_inv_returned 
         details_list.append(PaymentDetails(number=m,
                                             date=datetime.strftime((date_begin+relativedelta(months=m)), "%d.%m.%Y"),
                                             profit=object_profit,
