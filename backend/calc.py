@@ -1,3 +1,9 @@
+from datetime import datetime, timedelta, date
+from dateutil.relativedelta import relativedelta
+from dataclasses import dataclass
+
+
+
 
 
 def count_months_summ(months:int,percent:float,summa:int)->int:
@@ -8,8 +14,71 @@ def count_months_summ(months:int,percent:float,summa:int)->int:
     monthly_sum = summa*annuitet_coeffic
     return round(monthly_sum,2)
 
+
 def overpay(credit_sum:int, month_pay_sum:float, months:int)->float:
     return round(month_pay_sum*months-credit_sum,2)
+
+
+
+@dataclass
+class PaymentDetails:
+    number:int
+    date:date
+    profit:float
+    sum_return_this_month:float
+    returned_sum:float
+    our_balance:float
+    full_investments_returned:bool
+
+
+def when_come_to_plus(date_begin:datetime, 
+                      total_investments:float, 
+                      our_investments_percent:float,
+                      object_profit:float,
+                      profit_return_percent_while_not_inv_returned:float,
+                      profit_return_percent_after_inv_returned:float,
+                      credit_total_cost:float=0,
+                      months_show_after_our_inv_returned:int=12
+                      ):
+    our_investments = total_investments*our_investments_percent/100
+    profit_return_sum_while_not_inv_returned = object_profit*profit_return_percent_while_not_inv_returned/100
+    profit_return_sum_after_inv_returned = object_profit*profit_return_percent_after_inv_returned/100
+    full_months_to_return_inv = int(our_investments//profit_return_sum_while_not_inv_returned)
+    # remainder__inv_for_last_month = our_investments%(profit_return_sum_while_not_inv_returned)
+    returned_sum = 0
+    our_balance = -our_investments
+    details_list=[]
+    for m in range(full_months_to_return_inv+1):
+        if m:
+            returned_sum+=profit_return_sum_while_not_inv_returned
+            our_balance+=profit_return_sum_while_not_inv_returned
+        details_list.append(PaymentDetails(number=m,
+                                           date=date_begin+relativedelta(months=m),
+                                           profit=object_profit,
+                                           sum_return_this_month=profit_return_sum_while_not_inv_returned,
+                                           returned_sum=returned_sum,
+                                           our_balance=our_balance,
+                                           full_investments_returned=False))
+    for i in range(months_show_after_our_inv_returned):
+        m+=1
+        if not i:
+            sum_return_this_month = profit_return_sum_while_not_inv_returned
+            returned_sum+=profit_return_sum_while_not_inv_returned
+            our_balance+=profit_return_sum_while_not_inv_returned
+        else:
+            sum_return_this_month = profit_return_sum_after_inv_returned
+            returned_sum+=profit_return_sum_after_inv_returned 
+            our_balance+=profit_return_sum_after_inv_returned 
+        details_list.append(PaymentDetails(number=m,
+                                            date=date_begin+relativedelta(months=m),
+                                            profit=object_profit,
+                                            sum_return_this_month=sum_return_this_month,
+                                            returned_sum=returned_sum,
+                                            our_balance=our_balance,
+                                            full_investments_returned=False))
+    return details_list
+    
+
 
 if __name__=='__main__':
     MONTHS=60
