@@ -53,7 +53,7 @@ def when_come_to_plus(date_begin:datetime,
             returned_sum+=profit_return_sum_while_not_inv_returned
             our_balance+=profit_return_sum_while_not_inv_returned
         details_list.append(PaymentDetails(number=m,
-                                           date=date_begin+relativedelta(months=m),
+                                           date=datetime.strftime((date_begin+relativedelta(months=m)), "%d.%m.%Y"),
                                            profit=object_profit,
                                            sum_return_this_month=profit_return_sum_while_not_inv_returned,
                                            returned_sum=returned_sum,
@@ -70,7 +70,7 @@ def when_come_to_plus(date_begin:datetime,
             returned_sum+=profit_return_sum_after_inv_returned 
             our_balance+=profit_return_sum_after_inv_returned 
         details_list.append(PaymentDetails(number=m,
-                                            date=date_begin+relativedelta(months=m),
+                                            date=datetime.strftime((date_begin+relativedelta(months=m)), "%d.%m.%Y"),
                                             profit=object_profit,
                                             sum_return_this_month=sum_return_this_month,
                                             returned_sum=returned_sum,
