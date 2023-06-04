@@ -52,7 +52,7 @@ module.exports = configure((ctx) => ({
   // Full list of options: https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-build
   build: {
     vueRouterMode: 'hash', // available values: 'hash', 'history'
-
+    distDir: "../../backend/templates",
     // transpile: false,
     // publicPath: '/',
 
@@ -87,6 +87,14 @@ module.exports = configure((ctx) => ({
     },
     port: 8080,
     open: true, // opens browser window automatically
+    proxy: {
+      '^/': {
+        target: 'http://127.0.0.1:5000',
+        ws: true,
+        changeOrigin: false
+      },
+
+    }
   },
 
   // https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-framework

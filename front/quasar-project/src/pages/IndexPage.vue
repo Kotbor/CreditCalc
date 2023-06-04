@@ -76,7 +76,7 @@
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                   <q-date v-model="date" mask="DD.MM.YYYY">
                     <div class="row items-center justify-end">
-                      <q-btn v-close-popup label="Close" color="primary" flat />
+                      <q-btn v-close-popup label="Закрыть" color="primary" flat />
                     </div>
                   </q-date>
                 </q-popup-proxy>
@@ -233,7 +233,7 @@ export default defineComponent({
       dateRef,
       daterules:[ val => val.length>= 8 || 'Введите данные'],
       runCount: function () {
-        axios.post('http://127.0.0.1:5000/count_credit?summa=' + summ.value +
+        axios.post('/count_credit?summa=' + summ.value +
           '&percent=' + percent.value +
           '&months=' + months.value)
           .then(function (resp) {
@@ -249,7 +249,7 @@ export default defineComponent({
       runWhenToPlus: function () {
 
 
-        axios.post('http://127.0.0.1:5000/when_to_plus?begin=' + date.value +
+        axios.post('/when_to_plus?begin=' + date.value +
         '&total_investments=' + total_investments.value +
         '&our_investments_percent=' + our_investments_percent.value+
         '&object_profit=' + object_profit.value+

@@ -1,10 +1,22 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from datetime import datetime
 from flask_cors import CORS
 from calc import count_months_summ, overpay, when_come_to_plus
 import dataclasses
-app = Flask(__name__)
+from waitress import serve
+import logging
+
+app = Flask(__name__, static_folder='templates', static_url_path='')
 CORS(app)
+
+logger = logging.getLogger('waitress')
+logger.setLevel(logging.INFO)
+
+
+@app.route("/", methods=["GET"])
+def home():
+    return render_template('index.html')
+
 
 @app.route("/count_credit", methods=["POST"])
 def count_credit():
@@ -40,4 +52,4 @@ def when_to_plus():
 
 
 if __name__=='__main__':
-    app.run()
+    serve(app, host='0.0.0.0', port=8000)
