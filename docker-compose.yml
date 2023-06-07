@@ -1,0 +1,6 @@
+version: "3.3"
+services:
+  calc-app:
+    build: .
+    ports:
+      - "34567:34567"
