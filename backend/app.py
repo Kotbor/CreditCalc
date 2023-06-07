@@ -18,7 +18,7 @@ def home():
     return render_template('index.html')
 
 
-@app.route("/count_credit", methods=["POST"])
+@app.route("/api/count_credit", methods=["POST"])
 def count_credit():
     summa = request.args.get('summa',None, type=float)
     percent = request.args.get('percent',None, type=float)
@@ -28,7 +28,7 @@ def count_credit():
     return jsonify({'month_sum':month_sum, 'overpay':over})
 
 
-@app.route("/when_to_plus", methods=["GET","POST"])
+@app.route("/api/when_to_plus", methods=["GET","POST"])
 def when_to_plus():
     begin = request.args.get('begin',None, type=str)
     begin = datetime.strptime(begin,"%d.%m.%Y")

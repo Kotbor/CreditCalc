@@ -88,10 +88,12 @@ module.exports = configure((ctx) => ({
     port: 8080,
     open: true, // opens browser window automatically
     proxy: {
-      '^/': {
-        target: 'http://127.0.0.1:5000',
-        ws: true,
-        changeOrigin: false
+      '/api': {
+        target: 'http://localhost:34567',
+        changeOrigin: true,
+        // pathRewrite: {
+        //   '^/api': ''
+        // }
       },
 
     }

@@ -4,7 +4,7 @@
     <div class="col">
       <div class="row shadow-2">
         <div class="col-auto q-pa-md">
-          <q-input v-model.number="summ" type="number" filled hint="Сумма" dense />
+          <q-input v-model.number="credit_summ" type="number" filled hint="Сумма" dense />
         </div>
 
         <div class="col-auto q-pa-md">
@@ -86,6 +86,15 @@
         </div>
         <div class="col-auto q-pa-md">
           <q-input
+          v-model.number="no_profit_months"
+          type="number"
+          filled
+          hint="Месяцев без прибыли"
+          dense
+          @update:model-value="newvalue => sumFromPercents(newvalue)"/>
+        </div>
+        <div class="col-auto q-pa-md">
+          <q-input
            v-model.number="total_investments"
           type="number"
           filled
@@ -108,6 +117,16 @@
           type="number"
           filled
           hint="Сумма наших инвестиций"
+          dense
+          @update:model-value="newvalue => percentsFromSum(newvalue)"/>
+          <q-toggle v-model="toCredit" label="Инвестиции в кредит" />
+        </div>
+        <div class="col-auto q-pa-md">
+          <q-input
+           v-model.number="our_investments_count_sum"
+          type="number"
+          filled
+          hint="Сумма для расчёта"
           dense
           @update:model-value="newvalue => percentsFromSum(newvalue)"/>
         </div>
@@ -173,6 +192,23 @@
       </tbody>
       </q-markup-table>
     </div>
+    <div>
+    <q-dialog v-model="alert">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Внимание</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          Необходимо заполнить срок кредита и процнетную ставку
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </div>
   </div>
 </template>
 
@@ -180,14 +216,18 @@
 /* eslint-disable */
 import { defineComponent, ref } from 'vue';
 import axios from 'axios';
+import { watch } from 'vue';
 
 export default defineComponent({
   name: 'IndexPage',
 
   setup() {
-    const summ = ref(0);
+    const alert = ref(false);
+    const credit_summ = ref(0);
     const months = ref(0);
+    const no_profit_months = ref(0);
     const percent = ref(0);
+    const toCredit = ref(false);
     const monthPay = ref(0);
     const overpay = ref(0);
     const to_return = ref(0);
@@ -196,6 +236,7 @@ export default defineComponent({
     const total_investments=ref(0);
     const our_investments_percent=ref(0);
     const our_investments_sum=ref(0);
+    const our_investments_count_sum=ref(0);
     const object_profit=ref(0);
     const profit_return_percent_while_not_inv_returned=ref(0);
     const profit_return_percent_after_inv_returned=ref(0);
@@ -208,21 +249,67 @@ export default defineComponent({
           categories: []
         }
       });
-      const series = ref([{
-        name: 'Наш баланс',
-        data: []
-      }]);
+      const series = ref([]);
+      const runCount = function () {
+        axios.post('http://localhost:34567/api/count_credit?summa=' + credit_summ.value +
+          '&percent=' + percent.value +
+          '&months=' + months.value)
+          .then(function (resp) {
+            console.log(resp)
+            monthPay.value = resp.data.month_sum
+            overpay.value = resp.data.overpay
+            to_return.value = overpay.value + credit_summ.value
+            if (toCredit.value){
+            our_investments_count_sum.value = to_return.value
+            }
+          }
+
+          )
+      };
+
+      const count_credit_sum = function(){
+        if (months.value!=0&&percent.value!=0){
+          credit_summ.value=our_investments_sum.value
+          runCount()
+
+        }
+        else{
+          alert.value=true
+        }
+      };
+      watch(toCredit,(value) => {
+      if (value==true){
+
+        count_credit_sum();
+        }
+      else{
+        our_investments_count_sum.value=our_investments_sum.value
+      }
+      });
+      watch(our_investments_sum, (value)=>{
+        if(toCredit.value==true){
+          count_credit_sum()
+        }
+        else{
+          our_investments_count_sum.value=our_investments_sum.value
+        }
+      })
+
 
     return {
-      summ,
+      alert,
+      credit_summ,
       months,
+      no_profit_months,
       percent,
+      toCredit,
       monthPay,
       overpay,
       to_return,
       total_investments,
       our_investments_percent,
       our_investments_sum,
+      our_investments_count_sum,
       object_profit,
       profit_return_percent_after_inv_returned,
       profit_return_percent_while_not_inv_returned,
@@ -231,25 +318,13 @@ export default defineComponent({
       options,
       series,
       dateRef,
+      runCount,
       daterules:[ val => val.length>= 8 || 'Введите данные'],
-      runCount: function () {
-        axios.post('/count_credit?summa=' + summ.value +
-          '&percent=' + percent.value +
-          '&months=' + months.value)
-          .then(function (resp) {
-            console.log(resp)
-            monthPay.value = resp.data.month_sum
-            overpay.value = resp.data.overpay
-            to_return.value = overpay.value + summ.value
 
-          }
-
-          )
-      },
       runWhenToPlus: function () {
 
 
-        axios.post('/when_to_plus?begin=' + date.value +
+        axios.post('http://localhost:34567/api/when_to_plus?begin=' + date.value +
         '&total_investments=' + total_investments.value +
         '&our_investments_percent=' + our_investments_percent.value+
         '&object_profit=' + object_profit.value+
@@ -261,10 +336,10 @@ export default defineComponent({
             payment_list.value=resp.data
             let balance = payment_list.value.map(v => v.our_balance)
             let dates = payment_list.value.map(v => v.date)
-            series.value = [{
+            series.value.push ({
               name: 'Наш баланс',
               data: balance
-            }]
+            })
             options.value = {
             chart: {
               id: 'payments-graph'
@@ -299,6 +374,7 @@ export default defineComponent({
           our_investments_percent.value = (to_return.value*100/total_investments.value).toFixed(2)
         }
       },
+
       // updateTotalInvestSum: function(){
       //   if (our_investments_sum.value && total_investments.value){
       //     our_investments_percent.value = our_investments_sum.value*100/total_investments.value
