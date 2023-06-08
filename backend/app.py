@@ -49,9 +49,9 @@ def when_to_plus():
                   months_show_after_our_inv_returned = months_show_after_our_inv_returned
                   )
     ret = []
-    for i in lst:
+    for i in lst['details']:
         ret.append(dataclasses.asdict(i))
-    return ret
+    return {'details':ret, 'months_to_profit':lst['months_to_profit']}
 
 
 if __name__=='__main__':

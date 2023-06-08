@@ -260,8 +260,21 @@
             </q-card-section>
           </q-card>
         </div>
+
+      </div>
+      <div class="row full-width">
+        <div class="col q-pr-md">
+        <q-card class="my-card" >
+                <q-card-section class="" >
+                <div>
+                  Возврат инвестиций через {{ months_to_profit }} месяцев
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
       </div>
     </div>
+
   </div>
   <div class="row q-pa-md">
     <div class="col">
@@ -338,6 +351,7 @@ export default defineComponent({
     const credit_summ = ref();
     const months = ref(60);
     const no_profit_months = ref(3);
+    const months_to_profit = ref(0)
     const percent = ref(12);
     const toCredit = ref(false);
     const monthPay = ref();
@@ -431,6 +445,7 @@ export default defineComponent({
       credit_summ,
       months,
       no_profit_months,
+      months_to_profit,
       percent,
       toCredit,
       monthPay,
@@ -476,7 +491,8 @@ export default defineComponent({
           )
           .then(function (resp) {
             console.log(resp);
-            payment_list.value = resp.data;
+            payment_list.value = resp.data.details;
+            months_to_profit.value = resp.data.months_to_profit
             let balance = payment_list.value.map((v) => v.our_balance);
             let dates = payment_list.value.map((v) => v.date);
 

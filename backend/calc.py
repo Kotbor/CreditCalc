@@ -63,7 +63,7 @@ def when_come_to_plus(date_begin:datetime,
                                            our_balance=round(our_balance),
                                            full_investments_returned=False))
         m+=1
-    
+    months_to_profit = m-1
     for i in range(months_show_after_our_inv_returned):
         m+=1
         # if not i:
@@ -81,7 +81,8 @@ def when_come_to_plus(date_begin:datetime,
                                             returned_sum=returned_sum,
                                             our_balance=round(our_balance),
                                             full_investments_returned=False))
-    return details_list
+    return {'details':details_list, 
+            'months_to_profit':months_to_profit}
     
 
 
