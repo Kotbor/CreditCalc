@@ -32,15 +32,14 @@ class PaymentDetails:
 
 
 def when_come_to_plus(date_begin:datetime, 
-                      total_investments:float, 
-                      our_investments_percent:float,
+                      total_investments:float,
+                      no_profit_months:int, 
+                      our_investments:float,
                       object_profit:float,
                       profit_return_percent_while_not_inv_returned:float,
                       profit_return_percent_after_inv_returned:float,
-                      credit_total_cost:float=0,
                       months_show_after_our_inv_returned:int=12
                       ):
-    our_investments = total_investments*our_investments_percent/100
     profit_return_sum_while_not_inv_returned = object_profit*profit_return_percent_while_not_inv_returned/100
     profit_return_sum_after_inv_returned = object_profit*profit_return_percent_after_inv_returned/100
     full_months_to_return_inv = int(our_investments//profit_return_sum_while_not_inv_returned)
@@ -53,15 +52,15 @@ def when_come_to_plus(date_begin:datetime,
     m=0
     # for m in range(full_months_to_return_inv+1):
     while our_balance<0:
-        if m:
+        if m>=no_profit_months:
             returned_sum+=profit_return_sum_while_not_inv_returned
             our_balance+=profit_return_sum_while_not_inv_returned
         details_list.append(PaymentDetails(number=m,
                                            date=datetime.strftime((date_begin+relativedelta(months=m)), "%d.%m.%Y"),
-                                           profit=object_profit,
-                                           sum_return_this_month=profit_return_sum_while_not_inv_returned,
+                                           profit=object_profit if m>=no_profit_months else 0,
+                                           sum_return_this_month=profit_return_sum_while_not_inv_returned if m>=no_profit_months else 0,
                                            returned_sum=returned_sum,
-                                           our_balance=our_balance,
+                                           our_balance=round(our_balance),
                                            full_investments_returned=False))
         m+=1
     
@@ -80,7 +79,7 @@ def when_come_to_plus(date_begin:datetime,
                                             profit=object_profit,
                                             sum_return_this_month=sum_return_this_month,
                                             returned_sum=returned_sum,
-                                            our_balance=our_balance,
+                                            our_balance=round(our_balance),
                                             full_investments_returned=False))
     return details_list
     

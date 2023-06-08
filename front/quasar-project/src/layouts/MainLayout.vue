@@ -11,7 +11,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-page-container>
+    <q-page-container style="background-color: #F6F6F6;">
       <router-view />
     </q-page-container>
   </q-layout>
