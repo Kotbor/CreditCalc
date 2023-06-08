@@ -386,7 +386,7 @@ export default defineComponent({
     const runCount = function () {
       axios
         .post(
-          "http://localhost:34567/api/count_credit?summa=" +
+          "/api/count_credit?summa=" +
             credit_summ.value +
             "&percent=" +
             percent.value +
@@ -472,7 +472,7 @@ export default defineComponent({
       runWhenToPlus: function () {
         axios
           .post(
-            "http://localhost:34567/api/when_to_plus?begin=" +
+            "/api/when_to_plus?begin=" +
               date.value +
               "&total_investments=" +
               total_investments.value +
