@@ -85,7 +85,7 @@
                     v-model.number="object_profit"
                     type="number"
                     outlined
-                    hint="Выручка объекта"
+                    hint="Прибыль объекта"
                     dense
                   />
                 </div>
@@ -96,7 +96,7 @@
                     "
                     type="number"
                     outlined
-                    hint="Процент с выручки до возврата"
+                    hint="Процент с прибыли до возврата"
                     dense
                   />
                 </div>
@@ -105,7 +105,7 @@
                     v-model.number="profit_return_percent_after_inv_returned"
                     type="number"
                     outlined
-                    hint="Процент с выручки после возврата"
+                    hint="Процент с прибыли после возврата"
                     dense
                   />
                 </div>
@@ -199,7 +199,7 @@
             </q-card-section>
           </q-card>
         </div>
-        <div class="col self-center q-pa-md">
+        <div class="col self-center q-pl-md">
           <q-card class="my-card" style="">
             <q-card-section>
               <div class="text-subtitle2">Результат расчетов кредита</div>
@@ -252,7 +252,7 @@
                 <div>
                   <apexchart
                     type="pie"
-                    width="350"
+                    width="370"
                     :options="pieoptions"
                     :series="pieseries"
                   ></apexchart>
@@ -278,12 +278,21 @@
   </div>
   <div class="row q-pa-md">
     <div class="col">
+
+    <CountedTable :countedList=counted_list>
+
+    </CountedTable>
+    </div>
+  </div>
+  <div class="row q-pa-md">
+    <div class="col">
       <div>
         <apexchart
           height="500"
           type="area"
           :options="options"
           :series="series"
+          @click="chartClick"
         ></apexchart>
       </div>
     </div>
@@ -295,7 +304,7 @@
         <thead class="bg-blue-6">
           <tr>
             <th class="text-center text-white">Дата</th>
-            <th class="text-center text-white">Выручка</th>
+            <th class="text-center text-white">Прибыль</th>
             <th class="text-center text-white">К возврату</th>
             <th class="text-center text-white">Всего вернули</th>
             <th class="text-center text-white">Наш баланс</th>
@@ -341,10 +350,11 @@
 import { defineComponent, ref } from "vue";
 import axios from "axios";
 import { watch } from "vue";
+import CountedTable from "../components/CountedTable.vue";
 
 export default defineComponent({
   name: "IndexPage",
-
+  components: {CountedTable},
   setup() {
     var count = ref(1);
     const alert = ref(false);
@@ -368,13 +378,14 @@ export default defineComponent({
     const profit_return_percent_after_inv_returned = ref();
     const payment_list = ref([]);
     const months_after_refund = ref(12);
+    var counted_list=ref([]);
     const options = ref({
       chart: {
         id: "payments-graph",
       },
       xaxis: {
         categories: [],
-      },
+      }
     });
     const series = ref([]);
     const pieoptions = {
@@ -440,6 +451,7 @@ export default defineComponent({
     });
 
     return {
+
       count,
       alert,
       credit_summ,
@@ -467,7 +479,13 @@ export default defineComponent({
       dateRef,
       runCount,
       months_after_refund,
+      counted_list,
       daterules: [(val) => val.length >= 8 || "Введите данные"],
+      chartClick: function(event, chartContext, config) {
+        // The last parameter config contains additional information like `seriesIndex` and `dataPointIndex` for cartesian charts
+        console.log(config)
+        console.log(chartContext)
+      },
 
       runWhenToPlus: function () {
         axios
@@ -490,14 +508,28 @@ export default defineComponent({
               no_profit_months.value
           )
           .then(function (resp) {
-            console.log(resp);
+
             payment_list.value = resp.data.details;
             months_to_profit.value = resp.data.months_to_profit
             let balance = payment_list.value.map((v) => v.our_balance);
             let dates = payment_list.value.map((v) => v.date);
+            counted_list.value.push({
+              'count_num':"Расчет № " + count.value,
+              'total_investments':total_investments.value,
+              'our_investments_sum':our_investments_sum.value,
+              'object_profit':object_profit.value,
+              'percent_not_returned':profit_return_percent_while_not_inv_returned.value,
+              'percent_after_returned':profit_return_percent_after_inv_returned.value,
+              'no_profit_months':no_profit_months.value,
+              'our_investments_percent':our_investments_percent.value,
+              'months_to_profit':months_to_profit.value,
+              'our_investments_count_sum':our_investments_count_sum.value,
+              'credit':toCredit.value?'Да':'Нет',
 
+
+            })
             series.value.push({
-              name: "Баланс № " + count.value,
+              name: "Расчет № " + count.value,
               data: balance,
             });
             count.value++;
